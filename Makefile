@@ -1,7 +1,7 @@
 .PHONY: all clean
 all:
 	@echo "Compiling..."
-	@g++ main.cpp -Wall -Wextra -O -o BinToHeader
+	@gcc main.c -Wall -Wextra -O -o BinToHeader
 	@echo "Done."
 
 clean:
