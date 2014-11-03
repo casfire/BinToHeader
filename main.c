@@ -3,60 +3,80 @@
 #include <time.h>
 #include <ctype.h>
 
-void wait(){
+void wait() {
 	fflush(stdin);
 	fgetc(stdin);
 }
 
+int isNumber(char c) {
+	return (c >= '0' && c <= '9') ? 1 : 0;
+}
+
+int isAlphanumeric(char c) {
+	if (c >= 'a' && c <= 'z') return 1;
+	if (c >= 'A' && c <= 'Z') return 1;
+	if (isNumber(c)) return 1;
+	return 0;
+}
+
 int main(int argc, char *argv[]){
 	char *tmp;
-
-	if(argc < 2){
+	
+	if (argc < 2) {
 		printf("No input files.\n");
 		wait();
 		return -1;
 	}
-
+	
 	char *argFile = argv[1];
-
-	//Output file
+	
+	// Output file
 	char file[1024];
-	sprintf(file,"%s.h",argFile);
-
-	//Get input file name
+	sprintf(file, "%s.h", argFile);
+	
+	// Get input file name
 	char *name = argFile;
-	for(tmp = argFile; *tmp != 0; tmp++){
-		if((*tmp == '\\')||(*tmp == '/'))name = tmp+1;
+	for (tmp = argFile; *tmp != '\0'; tmp++) {
+		if (*tmp == '\\' || *tmp == '/' ) {
+			name = tmp + 1;
+		}
 	}
-
-	//Input file name to upper case
+	
+	// Input file name to upper case
 	char nameUpper[256];
 	sprintf(nameUpper, "_%s", name);
-	for(tmp = nameUpper; *tmp != 0; tmp++){
-		if(((*tmp >= 'a')&&(*tmp <= 'z'))||((*tmp >= 'A')&&(*tmp <= 'Z'))||((*tmp >= '0')&&(*tmp <= '9'))){
+	for (tmp = nameUpper; *tmp != '\0'; tmp++) {
+		if (isAlphanumeric(*tmp)) {
 			*tmp = toupper(*tmp);
-		}else *tmp = '_';
+		} else {
+			*tmp = '_';
+		}
 	}
-
-	//Input file name to lower case
+	
+	// Input file name to lower case
 	char nameLower[256];
-	if((*name >= '0')&&(*name <= '9'))sprintf(nameLower, "_%s", name);
-	else sprintf(nameLower, "%s", name);
-	for(tmp = nameLower; *tmp != 0; tmp++){
-		if(((*tmp >= 'a')&&(*tmp <= 'z'))||((*tmp >= 'A')&&(*tmp <= 'Z'))||((*tmp >= '0')&&(*tmp <= '9'))){
-			*tmp = tolower(*tmp);
-		}else *tmp = '_';
+	if (isNumber(*name)) {
+		sprintf(nameLower, "_%s", name);
+	} else {
+		sprintf(nameLower, "%s", name);
 	}
-
-	//Open files
-	FILE *fi = fopen(argFile,"rb");
-	if(fi == NULL){
+	for (tmp = nameLower; *tmp != '\0'; tmp++) {
+		if (isAlphanumeric(*tmp)) {
+			*tmp = toupper(*tmp);
+		} else {
+			*tmp = '_';
+		}
+	}
+	
+	// Open files
+	FILE *fi = fopen(argFile, "rb");
+	if (fi == NULL) {
 		printf("Unable to open %s for reading.\n", argFile);
 		wait();
 		return -1;
 	}
-	FILE *fo = fopen(file,"wt");
-	if(fo == NULL){
+	FILE *fo = fopen(file, "wt");
+	if (fo == NULL) {
 		printf("Unable to open %s for writing.\n", file);
 		wait();
 		fclose(fi);
@@ -69,14 +89,13 @@ int main(int argc, char *argv[]){
 	fprintf(fo, "\n");
 	fprintf(fo, "static const unsigned char %s[] = {\n", nameLower);
 	int c, count = 0;
-	while((c = fgetc(fi)) != EOF){
+	while ((c = fgetc(fi)) != EOF) {
 		char ch = (unsigned char)c;
-		if(count == 12){
+		if (count == 12) {
 			fprintf(fo, ",\n");
 			count = 0;
 		}
-		if(count > 0)fprintf(fo, ", ");
-		else fprintf(fo, "\t");
+		fprintf(fo, (count > 0) ? ", " : "\t");
 		fprintf(fo, "0x%.2X", ch & 0xFF);
 		count++;
 	}
@@ -86,8 +105,9 @@ int main(int argc, char *argv[]){
 	fprintf(fo, "#endif\n");
 	fclose(fi);
 	fclose(fo);
-
+	
 	//printf("Done.\n");
 	//wait();
+	
 	return 0;
 }
